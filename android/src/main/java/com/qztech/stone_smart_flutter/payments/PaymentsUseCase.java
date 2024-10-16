@@ -113,11 +113,10 @@ public class PaymentsUseCase {
     mFragment.onError(convertBasicResultToJson(basicResult));
     String jsonError = convertActionToJson(actionResult);
     mFragment.onFinishedResponse(jsonError);
-    // posTransactionProvider.abortPayment();
     currentTransactionObject = null;
     posTransactionProvider= null;
 
-    mFragment.onMessage("Transação concluída");
+    mFragment.onMessage("Transação finalizada");
   }
 
   public void handleTransactionSuccess(Context context, ActionResult actionResult, boolean isPrinter, TransactionObject transaction) {
@@ -213,13 +212,10 @@ public class PaymentsUseCase {
 
             boolean isPaymentApproved = transactionObject.getTransactionStatus() == TransactionStatusEnum.APPROVED;
 
-            checkStatusWithErrorTransaction(transactionObject.getTransactionStatus(), context);
-
             actionResult.buildResponseStoneTransaction(transactionObject, isPaymentApproved);
             String jsonStoneResult = convertActionToJson(actionResult);
             finishTransaction(jsonStoneResult);
 
-            mFragment.onMessage("Transação concluída");
             mFragment.onTransactionSuccess();
           } else {
             handleTransactionError(context, "Transação já realizada mas não aprovada", actionResult, basicResult);
@@ -577,11 +573,6 @@ public class PaymentsUseCase {
         posTransactionProvider.abortPayment();
       }
       return;
-    }
-
-    if(status == TransactionStatusEnum.WITH_ERROR) {
-      mFragment.onMessage("Revertendo a transacao");
-      onReversalTransaction(context);
     }
   }
 

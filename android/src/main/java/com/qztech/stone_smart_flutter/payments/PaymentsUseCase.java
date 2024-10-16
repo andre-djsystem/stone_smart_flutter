@@ -97,8 +97,6 @@ public class PaymentsUseCase {
   public void handleTransactionError(Context context, String message, ActionResult actionResult, BasicResult basicResult) {
     mFragment.onMessage(message);
 
-    checkStatusWithErrorTransaction(posTransactionProvider.getTransactionStatus(), context);
-
     actionResult.setTransactionStatus(posTransactionProvider.getTransactionStatus().toString());
     actionResult.setMessageFromAuthorize(posTransactionProvider.getMessageFromAuthorize());
     actionResult.setAuthorizationCode(posTransactionProvider.getAuthorizationCode());
@@ -109,6 +107,8 @@ public class PaymentsUseCase {
 
     basicResult.setResult(999999);
     basicResult.setErrorMessage(mStoneHelper.getErrorFromErrorList(posTransactionProvider.getListOfErrors()));
+
+    checkStatusWithErrorTransaction(posTransactionProvider.getTransactionStatus(), context);
 
     mFragment.onError(convertBasicResultToJson(basicResult));
     String jsonError = convertActionToJson(actionResult);
@@ -123,7 +123,7 @@ public class PaymentsUseCase {
   public void handleTransactionSuccess(Context context, ActionResult actionResult, boolean isPrinter, TransactionObject transaction) {
     TransactionDAO transactionDAO = new TransactionDAO(context);
     TransactionObject transactionObject = transactionDAO.findTransactionWithInitiatorTransactionKey(transaction.getInitiatorTransactionKey());
-    checkStatusWithErrorTransaction(posTransactionProvider.getTransactionStatus(), context);
+
     actionResult.setTransactionStatus(posTransactionProvider.getTransactionStatus().toString());
     actionResult.setMessageFromAuthorize(posTransactionProvider.getMessageFromAuthorize());
     actionResult.setAuthorizationCode(posTransactionProvider.getAuthorizationCode());
@@ -132,6 +132,9 @@ public class PaymentsUseCase {
       actionResult.setUserModel(userModelString);
     }
     boolean isPaymentApproved = posTransactionProvider.getTransactionStatus() == TransactionStatusEnum.APPROVED || currentTransactionObject.getTransactionStatus() == TransactionStatusEnum.APPROVED;
+
+    checkStatusWithErrorTransaction(posTransactionProvider.getTransactionStatus(), context);
+
     actionResult.buildResponseStoneTransaction(transactionObject, isPaymentApproved);
     String jsonStoneResult = convertActionToJson(actionResult);
     finishTransaction(jsonStoneResult);
@@ -199,7 +202,6 @@ public class PaymentsUseCase {
         if(transactionObject != null) {
           if(transactionObject.getTransactionStatus() == TransactionStatusEnum.APPROVED){
 
-            checkStatusWithErrorTransaction(transactionObject.getTransactionStatus(), context);
             actionResult.setTransactionStatus(transactionObject.getTransactionStatus().toString());
             actionResult.setMessageFromAuthorize(transactionObject.getAuthorizationCode());
             actionResult.setAuthorizationCode(transactionObject.getAuthorizationCode());
@@ -210,6 +212,8 @@ public class PaymentsUseCase {
             }
 
             boolean isPaymentApproved = transactionObject.getTransactionStatus() == TransactionStatusEnum.APPROVED;
+
+            checkStatusWithErrorTransaction(transactionObject.getTransactionStatus(), context);
 
             actionResult.buildResponseStoneTransaction(transactionObject, isPaymentApproved);
             String jsonStoneResult = convertActionToJson(actionResult);
